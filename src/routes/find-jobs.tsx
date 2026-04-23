@@ -1,6 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
-import { Search, Loader2, Bookmark, BookmarkCheck, Lightbulb, Briefcase, MapPin, GraduationCap } from "lucide-react";
+import { Search, Loader2, Bookmark, BookmarkCheck, Lightbulb, Briefcase, MapPin, GraduationCap, ExternalLink } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { callText } from "@/lib/ai";
