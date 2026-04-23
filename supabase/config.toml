@@ -2,3 +2,6 @@ project_id = "xntijdpdolsuyvcdxeru"
 
 [functions.jobgenie-ai]
 verify_jwt = false
+
+[functions.jobgenie-jobs]
+verify_jwt = false
