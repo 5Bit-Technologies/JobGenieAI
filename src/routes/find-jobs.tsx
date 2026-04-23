@@ -1,10 +1,13 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
-import { Search, Loader2, Bookmark, BookmarkCheck, Lightbulb, Briefcase, MapPin, GraduationCap } from "lucide-react";
+import { Search, Loader2, Bookmark, BookmarkCheck, Lightbulb, Briefcase, MapPin, GraduationCap, ExternalLink } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { callJson, callText } from "@/lib/ai";
+import { callText } from "@/lib/ai";
 import { profileSystemExtra, useProfile, PROVINCES, INDUSTRIES, QUALIFICATIONS } from "@/lib/profile";
+
+const JOBS_FN_URL = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/jobgenie-jobs`;
+const ANON = import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY;
 import { useLocalStorage } from "@/lib/storage";
 import { markToolUsed } from "@/lib/progress";
 import { toast } from "sonner";
@@ -56,37 +59,19 @@ function FindJobs() {
     setLoading(true);
     setResults([]);
     try {
-      const data = await callJson<{ listings: Listing[] }>({
-        systemExtra: `${profileSystemExtra(profile)}
-Generate REALISTIC FICTIONAL South African opportunities clearly labelled as samples. Use real-style names: SETAs (MerSETA, BANKSETA, MICT SETA, W&RSETA, HWSETA, FoodBev SETA, Services SETA, INSETA), employers (Shoprite, Pick n Pay, Capitec, FNB, MTN, Vodacom, Eskom, Transnet, Sasol, SAB), Harambee, YES Programme, NYDA, government departments. Use real provinces and cities. Salaries/stipends in Rand (R3,500/month etc). Closing dates in next 1-3 months.
-
-Return ONLY valid JSON:
-{
-  "listings": [
-    {
-      "id": "1",
-      "title": "...",
-      "organisation": "...",
-      "location": "City, Province",
-      "type": "Learnership" | "Internship" | "Entry-Level Job" | "YES Programme" | "Apprenticeship",
-      "requirements": ["...", "..."],
-      "description": "2-3 sentence description, includes stipend if relevant",
-      "closingDate": "DD Month YYYY"
-    }
-  ]
-}
-
-Generate 6 listings. Match the user's filters and search query.`,
-        messages: [
-          {
-            role: "user",
-            content: `Search query: ${query || "any opportunities for me"}
-Filters: Province=${province || "any"}, Industry=${industry || "any"}, Qualification=${qualification || "any"}.`,
-          },
-        ],
+      const resp = await fetch(JOBS_FN_URL, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${ANON}`,
+        },
+        body: JSON.stringify({ query, province, industry, qualification }),
       });
-      setResults(data.listings || []);
-      if (!data.listings?.length) toast.info("No matches — try a broader search.");
+      const data = await resp.json();
+      if (!resp.ok) throw new Error(data.error ?? "Search failed");
+      const listings: Listing[] = Array.isArray(data.listings) ? data.listings : [];
+      setResults(listings);
+      if (!listings.length) toast.info("No live matches found — try a broader search.");
     } catch (e) {
       toast.error(e instanceof Error ? e.message : "Search failed");
     } finally {
@@ -180,10 +165,10 @@ Tips should be practical: what to mention in the application, what skills to hig
         <TabBtn active={tab === "saved"} onClick={() => setTab("saved")}>Saved ({saved.length})</TabBtn>
       </div>
 
-      {/* Sample label */}
+      {/* Live results banner */}
       {tab === "results" && results.length > 0 && (
-        <div className="mt-4 rounded-2xl border border-accent/40 bg-accent-soft px-4 py-2 text-xs text-foreground">
-          ⚡ <strong>Sample Opportunities</strong> — These are AI-generated examples to show what's out there. For live applications, search SAYouth.mobi, Indeed SA, or the Harambee Hub.
+        <div className="mt-4 rounded-2xl border border-primary/30 bg-primary-soft px-4 py-2 text-xs text-foreground">
+          🔴 <strong>Live results</strong> — Pulled in real time from SAYouth, Harambee, Indeed SA, Careers24 and other SA job sites. Click "View & Apply" to open the original posting.
         </div>
       )}
 
@@ -236,6 +221,14 @@ Tips should be practical: what to mention in the application, what skills to hig
               )}
 
               <div className="mt-4 flex flex-wrap gap-2">
+                {l.applyUrl && (
+                  <Button asChild size="sm">
+                    <a href={l.applyUrl} target="_blank" rel="noopener noreferrer">
+                      <ExternalLink className="h-4 w-4" />
+                      View & Apply
+                    </a>
+                  </Button>
+                )}
                 <Button variant="outline" size="sm" onClick={() => getTips(l)} disabled={tipLoading && tipFor === tipKey}>
                   {tipLoading && tipFor === tipKey ? <Loader2 className="h-4 w-4 animate-spin" /> : <Lightbulb className="h-4 w-4" />}
                   Apply Tips
