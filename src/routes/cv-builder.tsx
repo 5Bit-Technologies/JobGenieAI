@@ -165,19 +165,48 @@ Rules:
   }
 
   async function downloadPdf() {
-    const node = document.getElementById("cv-print-target");
-    if (!node) return;
-    const html2pdf = (await import("html2pdf.js")).default;
-    html2pdf()
-      .from(node)
-      .set({
-        margin: 0,
-        filename: `${cv.personal.name || "JobGenie"}-CV.pdf`,
-        image: { type: "jpeg", quality: 0.98 },
-        html2canvas: { scale: 2, useCORS: true, backgroundColor: "#ffffff" },
-        jsPDF: { unit: "mm", format: "a4", orientation: "portrait" },
-      })
-      .save();
+    const source = document.getElementById("cv-print-target");
+    if (!source) return;
+    try {
+      const html2pdf = (await import("html2pdf.js")).default;
+
+      // Clone into an isolated, off-screen container so html2pdf never walks
+      // ancestor styles that use oklch() (which html2canvas can't parse).
+      const clone = source.cloneNode(true) as HTMLElement;
+      const sandbox = document.createElement("div");
+      sandbox.style.position = "fixed";
+      sandbox.style.left = "-10000px";
+      sandbox.style.top = "0";
+      sandbox.style.width = "820px";
+      sandbox.style.background = "#ffffff";
+      sandbox.style.color = "#1f2937";
+      // Reset CSS custom properties that resolve to oklch() in the design system
+      sandbox.style.cssText += `
+        --background:#ffffff;--foreground:#1f2937;--card:#ffffff;--card-foreground:#1f2937;
+        --popover:#ffffff;--popover-foreground:#1f2937;--primary:#1B4332;--primary-foreground:#ffffff;
+        --secondary:#f5f5f4;--secondary-foreground:#1f2937;--muted:#f5f5f4;--muted-foreground:#6b7280;
+        --accent:#D4A017;--accent-foreground:#1B4332;--destructive:#dc2626;--destructive-foreground:#ffffff;
+        --border:#e5e7eb;--input:#e5e7eb;--ring:#1B4332;
+      `;
+      sandbox.appendChild(clone);
+      document.body.appendChild(sandbox);
+
+      await html2pdf()
+        .from(clone)
+        .set({
+          margin: 0,
+          filename: `${cv.personal.name || "JobGenie"}-CV.pdf`,
+          image: { type: "jpeg", quality: 0.98 },
+          html2canvas: { scale: 2, useCORS: true, backgroundColor: "#ffffff" },
+          jsPDF: { unit: "mm", format: "a4", orientation: "portrait" },
+        })
+        .save();
+
+      document.body.removeChild(sandbox);
+    } catch (e) {
+      console.error("PDF export failed:", e);
+      toast.error("Couldn't download PDF. Please try again.");
+    }
   }
 
   function startOver() {
