@@ -10,7 +10,12 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as OnboardRouteImport } from './routes/onboard'
+import { Route as InterviewCoachRouteImport } from './routes/interview-coach'
+import { Route as FindJobsRouteImport } from './routes/find-jobs'
 import { Route as DashboardRouteImport } from './routes/dashboard'
+import { Route as CvCheckRouteImport } from './routes/cv-check'
+import { Route as CvBuilderRouteImport } from './routes/cv-builder'
+import { Route as CareerQuizRouteImport } from './routes/career-quiz'
 import { Route as IndexRouteImport } from './routes/index'
 
 const OnboardRoute = OnboardRouteImport.update({
@@ -18,9 +23,34 @@ const OnboardRoute = OnboardRouteImport.update({
   path: '/onboard',
   getParentRoute: () => rootRouteImport,
 } as any)
+const InterviewCoachRoute = InterviewCoachRouteImport.update({
+  id: '/interview-coach',
+  path: '/interview-coach',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const FindJobsRoute = FindJobsRouteImport.update({
+  id: '/find-jobs',
+  path: '/find-jobs',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const DashboardRoute = DashboardRouteImport.update({
   id: '/dashboard',
   path: '/dashboard',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const CvCheckRoute = CvCheckRouteImport.update({
+  id: '/cv-check',
+  path: '/cv-check',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const CvBuilderRoute = CvBuilderRouteImport.update({
+  id: '/cv-builder',
+  path: '/cv-builder',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const CareerQuizRoute = CareerQuizRouteImport.update({
+  id: '/career-quiz',
+  path: '/career-quiz',
   getParentRoute: () => rootRouteImport,
 } as any)
 const IndexRoute = IndexRouteImport.update({
@@ -31,31 +61,76 @@ const IndexRoute = IndexRouteImport.update({
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/career-quiz': typeof CareerQuizRoute
+  '/cv-builder': typeof CvBuilderRoute
+  '/cv-check': typeof CvCheckRoute
   '/dashboard': typeof DashboardRoute
+  '/find-jobs': typeof FindJobsRoute
+  '/interview-coach': typeof InterviewCoachRoute
   '/onboard': typeof OnboardRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/career-quiz': typeof CareerQuizRoute
+  '/cv-builder': typeof CvBuilderRoute
+  '/cv-check': typeof CvCheckRoute
   '/dashboard': typeof DashboardRoute
+  '/find-jobs': typeof FindJobsRoute
+  '/interview-coach': typeof InterviewCoachRoute
   '/onboard': typeof OnboardRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
+  '/career-quiz': typeof CareerQuizRoute
+  '/cv-builder': typeof CvBuilderRoute
+  '/cv-check': typeof CvCheckRoute
   '/dashboard': typeof DashboardRoute
+  '/find-jobs': typeof FindJobsRoute
+  '/interview-coach': typeof InterviewCoachRoute
   '/onboard': typeof OnboardRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/dashboard' | '/onboard'
+  fullPaths:
+    | '/'
+    | '/career-quiz'
+    | '/cv-builder'
+    | '/cv-check'
+    | '/dashboard'
+    | '/find-jobs'
+    | '/interview-coach'
+    | '/onboard'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/dashboard' | '/onboard'
-  id: '__root__' | '/' | '/dashboard' | '/onboard'
+  to:
+    | '/'
+    | '/career-quiz'
+    | '/cv-builder'
+    | '/cv-check'
+    | '/dashboard'
+    | '/find-jobs'
+    | '/interview-coach'
+    | '/onboard'
+  id:
+    | '__root__'
+    | '/'
+    | '/career-quiz'
+    | '/cv-builder'
+    | '/cv-check'
+    | '/dashboard'
+    | '/find-jobs'
+    | '/interview-coach'
+    | '/onboard'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  CareerQuizRoute: typeof CareerQuizRoute
+  CvBuilderRoute: typeof CvBuilderRoute
+  CvCheckRoute: typeof CvCheckRoute
   DashboardRoute: typeof DashboardRoute
+  FindJobsRoute: typeof FindJobsRoute
+  InterviewCoachRoute: typeof InterviewCoachRoute
   OnboardRoute: typeof OnboardRoute
 }
 
@@ -68,11 +143,46 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof OnboardRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/interview-coach': {
+      id: '/interview-coach'
+      path: '/interview-coach'
+      fullPath: '/interview-coach'
+      preLoaderRoute: typeof InterviewCoachRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/find-jobs': {
+      id: '/find-jobs'
+      path: '/find-jobs'
+      fullPath: '/find-jobs'
+      preLoaderRoute: typeof FindJobsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/dashboard': {
       id: '/dashboard'
       path: '/dashboard'
       fullPath: '/dashboard'
       preLoaderRoute: typeof DashboardRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/cv-check': {
+      id: '/cv-check'
+      path: '/cv-check'
+      fullPath: '/cv-check'
+      preLoaderRoute: typeof CvCheckRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/cv-builder': {
+      id: '/cv-builder'
+      path: '/cv-builder'
+      fullPath: '/cv-builder'
+      preLoaderRoute: typeof CvBuilderRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/career-quiz': {
+      id: '/career-quiz'
+      path: '/career-quiz'
+      fullPath: '/career-quiz'
+      preLoaderRoute: typeof CareerQuizRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/': {
@@ -87,7 +197,12 @@ declare module '@tanstack/react-router' {
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  CareerQuizRoute: CareerQuizRoute,
+  CvBuilderRoute: CvBuilderRoute,
+  CvCheckRoute: CvCheckRoute,
   DashboardRoute: DashboardRoute,
+  FindJobsRoute: FindJobsRoute,
+  InterviewCoachRoute: InterviewCoachRoute,
   OnboardRoute: OnboardRoute,
 }
 export const routeTree = rootRouteImport
