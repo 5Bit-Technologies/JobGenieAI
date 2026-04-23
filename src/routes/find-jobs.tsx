@@ -59,37 +59,19 @@ function FindJobs() {
     setLoading(true);
     setResults([]);
     try {
-      const data = await callJson<{ listings: Listing[] }>({
-        systemExtra: `${profileSystemExtra(profile)}
-Generate REALISTIC FICTIONAL South African opportunities clearly labelled as samples. Use real-style names: SETAs (MerSETA, BANKSETA, MICT SETA, W&RSETA, HWSETA, FoodBev SETA, Services SETA, INSETA), employers (Shoprite, Pick n Pay, Capitec, FNB, MTN, Vodacom, Eskom, Transnet, Sasol, SAB), Harambee, YES Programme, NYDA, government departments. Use real provinces and cities. Salaries/stipends in Rand (R3,500/month etc). Closing dates in next 1-3 months.
-
-Return ONLY valid JSON:
-{
-  "listings": [
-    {
-      "id": "1",
-      "title": "...",
-      "organisation": "...",
-      "location": "City, Province",
-      "type": "Learnership" | "Internship" | "Entry-Level Job" | "YES Programme" | "Apprenticeship",
-      "requirements": ["...", "..."],
-      "description": "2-3 sentence description, includes stipend if relevant",
-      "closingDate": "DD Month YYYY"
-    }
-  ]
-}
-
-Generate 6 listings. Match the user's filters and search query.`,
-        messages: [
-          {
-            role: "user",
-            content: `Search query: ${query || "any opportunities for me"}
-Filters: Province=${province || "any"}, Industry=${industry || "any"}, Qualification=${qualification || "any"}.`,
-          },
-        ],
+      const resp = await fetch(JOBS_FN_URL, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${ANON}`,
+        },
+        body: JSON.stringify({ query, province, industry, qualification }),
       });
-      setResults(data.listings || []);
-      if (!data.listings?.length) toast.info("No matches — try a broader search.");
+      const data = await resp.json();
+      if (!resp.ok) throw new Error(data.error ?? "Search failed");
+      const listings: Listing[] = Array.isArray(data.listings) ? data.listings : [];
+      setResults(listings);
+      if (!listings.length) toast.info("No live matches found — try a broader search.");
     } catch (e) {
       toast.error(e instanceof Error ? e.message : "Search failed");
     } finally {
