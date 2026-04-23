@@ -165,10 +165,10 @@ Tips should be practical: what to mention in the application, what skills to hig
         <TabBtn active={tab === "saved"} onClick={() => setTab("saved")}>Saved ({saved.length})</TabBtn>
       </div>
 
-      {/* Sample label */}
+      {/* Live results banner */}
       {tab === "results" && results.length > 0 && (
-        <div className="mt-4 rounded-2xl border border-accent/40 bg-accent-soft px-4 py-2 text-xs text-foreground">
-          ⚡ <strong>Sample Opportunities</strong> — These are AI-generated examples to show what's out there. For live applications, search SAYouth.mobi, Indeed SA, or the Harambee Hub.
+        <div className="mt-4 rounded-2xl border border-primary/30 bg-primary-soft px-4 py-2 text-xs text-foreground">
+          🔴 <strong>Live results</strong> — Pulled in real time from SAYouth, Harambee, Indeed SA, Careers24 and other SA job sites. Click "View & Apply" to open the original posting.
         </div>
       )}
 
@@ -221,6 +221,14 @@ Tips should be practical: what to mention in the application, what skills to hig
               )}
 
               <div className="mt-4 flex flex-wrap gap-2">
+                {l.applyUrl && (
+                  <Button asChild size="sm">
+                    <a href={l.applyUrl} target="_blank" rel="noopener noreferrer">
+                      <ExternalLink className="h-4 w-4" />
+                      View & Apply
+                    </a>
+                  </Button>
+                )}
                 <Button variant="outline" size="sm" onClick={() => getTips(l)} disabled={tipLoading && tipFor === tipKey}>
                   {tipLoading && tipFor === tipKey ? <Loader2 className="h-4 w-4 animate-spin" /> : <Lightbulb className="h-4 w-4" />}
                   Apply Tips
