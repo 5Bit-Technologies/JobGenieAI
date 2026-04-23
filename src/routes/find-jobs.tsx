@@ -3,8 +3,11 @@ import { useEffect, useState } from "react";
 import { Search, Loader2, Bookmark, BookmarkCheck, Lightbulb, Briefcase, MapPin, GraduationCap } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { callJson, callText } from "@/lib/ai";
+import { callText } from "@/lib/ai";
 import { profileSystemExtra, useProfile, PROVINCES, INDUSTRIES, QUALIFICATIONS } from "@/lib/profile";
+
+const JOBS_FN_URL = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/jobgenie-jobs`;
+const ANON = import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY;
 import { useLocalStorage } from "@/lib/storage";
 import { markToolUsed } from "@/lib/progress";
 import { toast } from "sonner";
