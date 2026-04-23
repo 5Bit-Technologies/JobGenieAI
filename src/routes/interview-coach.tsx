@@ -217,7 +217,7 @@ Return ONLY JSON:
         <div className="mt-8 rounded-3xl border border-border bg-card p-6 shadow-card sm:p-8">
           <div className="grid gap-5 sm:grid-cols-2">
             <Field label="Industry">
-              <select value={industry} onChange={(e) => setIndustry(e.target.value)} className="h-12 w-full rounded-2xl border border-input bg-background px-4 text-sm">
+              <select value={industry} onChange={(e) => setIndustry(e.target.value as typeof industry)} className="h-12 w-full rounded-2xl border border-input bg-background px-4 text-sm">
                 {INDUSTRIES.map((i) => <option key={i} value={i}>{i}</option>)}
               </select>
             </Field>
