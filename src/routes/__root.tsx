@@ -40,7 +40,7 @@ export const Route = createRootRoute({
       },
       { name: "author", content: "JobGenie" },
       { name: "theme-color", content: "#1B4332" },
-      { property: "og:title", content: "JobGenie — Your AI career genie" },
+      { property: "og:title", content: "JobGenie — Land your first job. No connections needed." },
       {
         property: "og:description",
         content:
@@ -48,6 +48,12 @@ export const Route = createRootRoute({
       },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary_large_image" },
+      { name: "twitter:title", content: "JobGenie — Land your first job. No connections needed." },
+      { name: "description", content: "Job Leap is an AI-powered career assistant for young South Africans seeking their first job." },
+      { property: "og:description", content: "Job Leap is an AI-powered career assistant for young South Africans seeking their first job." },
+      { name: "twitter:description", content: "Job Leap is an AI-powered career assistant for young South Africans seeking their first job." },
+      { property: "og:image", content: "https://storage.googleapis.com/gpt-engineer-file-uploads/a0rAj94cb8asXKPZNHJJHRBkpmn2/social-images/social-1776931438065-unnamed.webp" },
+      { name: "twitter:image", content: "https://storage.googleapis.com/gpt-engineer-file-uploads/a0rAj94cb8asXKPZNHJJHRBkpmn2/social-images/social-1776931438065-unnamed.webp" },
     ],
     links: [
       { rel: "stylesheet", href: appCss },
