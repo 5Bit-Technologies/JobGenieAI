@@ -165,44 +165,157 @@ Rules:
   }
 
   async function downloadPdf() {
-    const source = document.getElementById("cv-print-target");
-    if (!source) return;
     try {
-      const html2pdf = (await import("html2pdf.js")).default;
+      const { jsPDF } = await import("jspdf");
+      const doc = new jsPDF({ unit: "mm", format: "a4", orientation: "portrait" });
 
-      // Clone into an isolated, off-screen container so html2pdf never walks
-      // ancestor styles that use oklch() (which html2canvas can't parse).
-      const clone = source.cloneNode(true) as HTMLElement;
-      const sandbox = document.createElement("div");
-      sandbox.style.position = "fixed";
-      sandbox.style.left = "-10000px";
-      sandbox.style.top = "0";
-      sandbox.style.width = "820px";
-      sandbox.style.background = "#ffffff";
-      sandbox.style.color = "#1f2937";
-      // Reset CSS custom properties that resolve to oklch() in the design system
-      sandbox.style.cssText += `
-        --background:#ffffff;--foreground:#1f2937;--card:#ffffff;--card-foreground:#1f2937;
-        --popover:#ffffff;--popover-foreground:#1f2937;--primary:#1B4332;--primary-foreground:#ffffff;
-        --secondary:#f5f5f4;--secondary-foreground:#1f2937;--muted:#f5f5f4;--muted-foreground:#6b7280;
-        --accent:#D4A017;--accent-foreground:#1B4332;--destructive:#dc2626;--destructive-foreground:#ffffff;
-        --border:#e5e7eb;--input:#e5e7eb;--ring:#1B4332;
-      `;
-      sandbox.appendChild(clone);
-      document.body.appendChild(sandbox);
+      const pageW = doc.internal.pageSize.getWidth();
+      const pageH = doc.internal.pageSize.getHeight();
+      const margin = 15;
+      const contentW = pageW - margin * 2;
+      let y = margin;
 
-      await html2pdf()
-        .from(clone)
-        .set({
-          margin: 0,
-          filename: `${cv.personal.name || "JobGenie"}-CV.pdf`,
-          image: { type: "jpeg", quality: 0.98 },
-          html2canvas: { scale: 2, useCORS: true, backgroundColor: "#ffffff" },
-          jsPDF: { unit: "mm", format: "a4", orientation: "portrait" },
-        })
-        .save();
+      const GREEN: [number, number, number] = [27, 67, 50];
+      const GOLD: [number, number, number] = [212, 160, 23];
+      const TEXT: [number, number, number] = [38, 38, 38];
+      const MUTED: [number, number, number] = [110, 110, 110];
 
-      document.body.removeChild(sandbox);
+      const ensureSpace = (needed: number) => {
+        if (y + needed > pageH - margin) {
+          doc.addPage();
+          y = margin;
+        }
+      };
+
+      const writeWrapped = (
+        text: string,
+        opts: { size?: number; style?: "normal" | "bold" | "italic"; color?: [number, number, number]; lineGap?: number; indent?: number } = {},
+      ) => {
+        const { size = 10, style = "normal", color = TEXT, lineGap = 1.2, indent = 0 } = opts;
+        doc.setFont("helvetica", style);
+        doc.setFontSize(size);
+        doc.setTextColor(color[0], color[1], color[2]);
+        const lines = doc.splitTextToSize(text, contentW - indent);
+        for (const line of lines) {
+          ensureSpace(size * 0.4 + lineGap);
+          doc.text(line, margin + indent, y);
+          y += size * 0.4 + lineGap;
+        }
+      };
+
+      const sectionHeading = (title: string) => {
+        ensureSpace(10);
+        y += 3;
+        doc.setFont("helvetica", "bold");
+        doc.setFontSize(10);
+        doc.setTextColor(GOLD[0], GOLD[1], GOLD[2]);
+        doc.text(title.toUpperCase(), margin, y);
+        y += 1.5;
+        doc.setDrawColor(GOLD[0], GOLD[1], GOLD[2]);
+        doc.setLineWidth(0.3);
+        doc.line(margin, y, margin + contentW, y);
+        y += 4;
+      };
+
+      const p = cv.personal ?? {};
+
+      // Header — name
+      doc.setFont("helvetica", "bold");
+      doc.setFontSize(24);
+      doc.setTextColor(GREEN[0], GREEN[1], GREEN[2]);
+      doc.text(p.name || "Your Name", margin, y + 8);
+      y += 12;
+
+      if (p.title) {
+        doc.setFont("helvetica", "italic");
+        doc.setFontSize(11);
+        doc.setTextColor(GOLD[0], GOLD[1], GOLD[2]);
+        doc.text(p.title, margin, y);
+        y += 6;
+      }
+
+      const contact = [p.email, p.phone, p.location, p.linkedin].filter(Boolean).join("  ·  ");
+      if (contact) {
+        doc.setFont("helvetica", "normal");
+        doc.setFontSize(9);
+        doc.setTextColor(MUTED[0], MUTED[1], MUTED[2]);
+        doc.text(contact, margin, y);
+        y += 4;
+      }
+
+      // Header divider
+      doc.setDrawColor(GREEN[0], GREEN[1], GREEN[2]);
+      doc.setLineWidth(0.8);
+      doc.line(margin, y, margin + contentW, y);
+      y += 4;
+
+      if (cv.objective) {
+        sectionHeading("Objective");
+        writeWrapped(cv.objective, { size: 10 });
+      }
+
+      if (cv.experience && cv.experience.length > 0) {
+        sectionHeading("Experience");
+        cv.experience.forEach((e, i) => {
+          if (i > 0) y += 2;
+          ensureSpace(8);
+          doc.setFont("helvetica", "bold");
+          doc.setFontSize(11);
+          doc.setTextColor(TEXT[0], TEXT[1], TEXT[2]);
+          doc.text(e.role || "", margin, y);
+          if (e.period) {
+            doc.setFont("helvetica", "normal");
+            doc.setFontSize(9);
+            doc.setTextColor(MUTED[0], MUTED[1], MUTED[2]);
+            const w = doc.getTextWidth(e.period);
+            doc.text(e.period, margin + contentW - w, y);
+          }
+          y += 4.5;
+          if (e.company) writeWrapped(e.company, { size: 9.5, style: "italic", color: MUTED });
+          if (e.details) writeWrapped(e.details, { size: 10 });
+        });
+      }
+
+      if (cv.education && cv.education.length > 0) {
+        sectionHeading("Education");
+        cv.education.forEach((e, i) => {
+          if (i > 0) y += 2;
+          ensureSpace(8);
+          doc.setFont("helvetica", "bold");
+          doc.setFontSize(11);
+          doc.setTextColor(TEXT[0], TEXT[1], TEXT[2]);
+          doc.text(e.qualification || "", margin, y);
+          if (e.year) {
+            doc.setFont("helvetica", "normal");
+            doc.setFontSize(9);
+            doc.setTextColor(MUTED[0], MUTED[1], MUTED[2]);
+            const w = doc.getTextWidth(e.year);
+            doc.text(e.year, margin + contentW - w, y);
+          }
+          y += 4.5;
+          if (e.school) writeWrapped(e.school, { size: 9.5, style: "italic", color: MUTED });
+          if (e.details) writeWrapped(e.details, { size: 10 });
+        });
+      }
+
+      if (cv.skills && cv.skills.length > 0) {
+        sectionHeading("Skills");
+        writeWrapped(cv.skills.join("  ·  "), { size: 10, color: GREEN });
+      }
+
+      if (cv.hobbies && cv.hobbies.length > 0) {
+        sectionHeading("Interests");
+        writeWrapped(cv.hobbies.join("  ·  "), { size: 10 });
+      }
+
+      if (cv.references && cv.references.length > 0) {
+        sectionHeading("References");
+        cv.references.forEach((r) => {
+          writeWrapped(`${r.name} — ${r.relation} · ${r.contact}`, { size: 10 });
+        });
+      }
+
+      doc.save(`${(cv.personal.name || "JobGenie").replace(/\s+/g, "-")}-CV.pdf`);
     } catch (e) {
       console.error("PDF export failed:", e);
       toast.error("Couldn't download PDF. Please try again.");
