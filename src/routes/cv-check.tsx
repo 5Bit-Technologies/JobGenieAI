@@ -39,8 +39,28 @@ function CVCheck() {
   const [selected, setSelected] = useState<Record<number, boolean>>({});
   const [building, setBuilding] = useState(false);
   const [updatedCV, setUpdatedCV] = useState<string>("");
+  const [uploading, setUploading] = useState(false);
+  const fileRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => { markToolUsed("cv-check"); }, []);
+
+  async function onUpload(files: FileList | null) {
+    if (!files || files.length === 0) return;
+    const file = files[0];
+    setUploading(true);
+    try {
+      const doc = await extractDocument(file);
+      setText(doc.text);
+      toast.success(
+        `Loaded "${doc.name}"${doc.truncated ? " (trimmed to fit)" : ""}`,
+      );
+    } catch (e) {
+      toast.error(e instanceof Error ? e.message : "Couldn't read file");
+    } finally {
+      setUploading(false);
+      if (fileRef.current) fileRef.current.value = "";
+    }
+  }
 
   const selectedCount = useMemo(
     () => Object.values(selected).filter(Boolean).length,
