@@ -390,10 +390,17 @@ ${fixesBlock}`,
                     {rewritingIdx === i ? <Loader2 className="h-4 w-4 animate-spin" /> : <Wand2 className="h-4 w-4" />}
                     {rewrites[i] ? "Rewrite again" : "Rewrite this section"}
                   </Button>
-                  {rewrites[i] && (
+                  {rewrites[i] !== undefined && (
                     <div className="mt-3 rounded-2xl border border-primary/20 bg-background p-4">
-                      <p className="mb-2 text-xs font-bold uppercase tracking-wider text-primary">Suggested rewrite</p>
-                      <pre className="whitespace-pre-wrap font-sans text-sm">{rewrites[i]}</pre>
+                      <div className="mb-2 flex items-center justify-between gap-2">
+                        <p className="text-xs font-bold uppercase tracking-wider text-primary">Suggested rewrite — edit freely</p>
+                        <span className="text-[10px] uppercase tracking-wider text-muted-foreground">Auto-saved</span>
+                      </div>
+                      <Textarea
+                        value={rewrites[i]}
+                        onChange={(e) => setRewrites((r) => ({ ...r, [i]: e.target.value }))}
+                        className="min-h-32 rounded-xl text-sm leading-relaxed"
+                      />
                     </div>
                   )}
                 </div>
