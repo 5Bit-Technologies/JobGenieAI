@@ -424,8 +424,8 @@ ${fixesBlock}`,
                     <Button variant="outline" size="sm" onClick={copyUpdated}>
                       <Copy className="h-4 w-4" /> Copy
                     </Button>
-                    <Button variant="outline" size="sm" onClick={downloadUpdated}>
-                      <Download className="h-4 w-4" /> Download .txt
+                    <Button variant="gold" size="sm" onClick={downloadUpdated}>
+                      <Download className="h-4 w-4" /> Download PDF
                     </Button>
                   </div>
                 </div>
