@@ -1,12 +1,13 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { useEffect, useMemo, useState } from "react";
-import { Loader2, Sparkles, CheckCircle2, AlertCircle, Wand2, FileText, Copy, Download } from "lucide-react";
+import { useEffect, useMemo, useRef, useState } from "react";
+import { Loader2, Sparkles, CheckCircle2, AlertCircle, Wand2, FileText, Copy, Download, Paperclip } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Checkbox } from "@/components/ui/checkbox";
 import { callJson, callText } from "@/lib/ai";
 import { profileSystemExtra, useProfile } from "@/lib/profile";
 import { markToolUsed } from "@/lib/progress";
+import { extractDocument } from "@/lib/extractDoc";
 import { toast } from "sonner";
 
 export const Route = createFileRoute("/cv-check")({
