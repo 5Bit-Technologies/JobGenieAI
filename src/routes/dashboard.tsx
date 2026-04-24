@@ -8,6 +8,7 @@ import {
   Compass,
   Sparkles,
   ArrowRight,
+  MessageCircle,
 } from "lucide-react";
 import { useProfile } from "@/lib/profile";
 import { ALL_TOOLS, getProgress, type ToolKey } from "@/lib/progress";
@@ -25,6 +26,7 @@ export const Route = createFileRoute("/dashboard")({
 });
 
 const TOOLS: { key: ToolKey; to: string; icon: typeof FileText; title: string; desc: string; tone: string }[] = [
+  { key: "chat", to: "/chat", icon: MessageCircle, title: "Talk to JobGenie", desc: "Chat about anything — jobs, letters, advice.", tone: "bg-clay/10 text-clay" },
   { key: "cv-builder", to: "/cv-builder", icon: FileText, title: "Build your CV", desc: "Chat your way to a polished CV.", tone: "bg-accent-soft text-primary" },
   { key: "find-jobs", to: "/find-jobs", icon: Briefcase, title: "Find Jobs", desc: "Learnerships and entry-level roles.", tone: "bg-primary-soft text-primary" },
   { key: "interview-coach", to: "/interview-coach", icon: MessageSquareHeart, title: "Practise Interviews", desc: "Real questions, real feedback.", tone: "bg-clay/10 text-clay" },
