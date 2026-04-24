@@ -1,12 +1,13 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { useEffect, useMemo, useState } from "react";
-import { Loader2, Sparkles, CheckCircle2, AlertCircle, Wand2, FileText, Copy, Download } from "lucide-react";
+import { useEffect, useMemo, useRef, useState } from "react";
+import { Loader2, Sparkles, CheckCircle2, AlertCircle, Wand2, FileText, Copy, Download, Paperclip } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Checkbox } from "@/components/ui/checkbox";
 import { callJson, callText } from "@/lib/ai";
 import { profileSystemExtra, useProfile } from "@/lib/profile";
 import { markToolUsed } from "@/lib/progress";
+import { extractDocument } from "@/lib/extractDoc";
 import { toast } from "sonner";
 
 export const Route = createFileRoute("/cv-check")({
@@ -38,8 +39,28 @@ function CVCheck() {
   const [selected, setSelected] = useState<Record<number, boolean>>({});
   const [building, setBuilding] = useState(false);
   const [updatedCV, setUpdatedCV] = useState<string>("");
+  const [uploading, setUploading] = useState(false);
+  const fileRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => { markToolUsed("cv-check"); }, []);
+
+  async function onUpload(files: FileList | null) {
+    if (!files || files.length === 0) return;
+    const file = files[0];
+    setUploading(true);
+    try {
+      const doc = await extractDocument(file);
+      setText(doc.text);
+      toast.success(
+        `Loaded "${doc.name}"${doc.truncated ? " (trimmed to fit)" : ""}`,
+      );
+    } catch (e) {
+      toast.error(e instanceof Error ? e.message : "Couldn't read file");
+    } finally {
+      setUploading(false);
+      if (fileRef.current) fileRef.current.value = "";
+    }
+  }
 
   const selectedCount = useMemo(
     () => Object.values(selected).filter(Boolean).length,
@@ -323,7 +344,7 @@ ${fixesBlock}`,
     <div className="mx-auto max-w-4xl px-4 py-6 sm:px-6 sm:py-10">
       <p className="font-display text-sm font-bold uppercase tracking-widest text-clay">CV Checker</p>
       <h1 className="mt-1 font-display text-3xl font-bold sm:text-4xl">Score your CV. Fix it on the spot.</h1>
-      <p className="mt-2 text-muted-foreground">Paste your existing CV text below. We'll score it out of 10.</p>
+      <p className="mt-2 text-muted-foreground">Paste your existing CV text — or upload a PDF / DOCX. We'll score it out of 10.</p>
 
       <div className="mt-6 rounded-3xl border border-border bg-card p-4 shadow-card sm:p-6">
         <Textarea
@@ -332,10 +353,30 @@ ${fixesBlock}`,
           placeholder="Paste your full CV here — name, contact, education, experience, skills, everything..."
           className="min-h-72 rounded-2xl text-sm"
         />
-        <Button size="lg" className="mt-4 w-full sm:w-auto" onClick={check} disabled={loading}>
-          {loading ? <Loader2 className="h-4 w-4 animate-spin" /> : <Sparkles className="h-4 w-4" />}
-          Check my CV
-        </Button>
+        <input
+          ref={fileRef}
+          type="file"
+          accept=".pdf,.docx,.doc,.txt,.md,application/pdf,text/plain"
+          className="hidden"
+          onChange={(e) => onUpload(e.target.files)}
+        />
+        <div className="mt-4 flex flex-wrap items-center gap-3">
+          <Button size="lg" onClick={check} disabled={loading || uploading}>
+            {loading ? <Loader2 className="h-4 w-4 animate-spin" /> : <Sparkles className="h-4 w-4" />}
+            Check my CV
+          </Button>
+          <Button
+            type="button"
+            variant="outline"
+            size="lg"
+            onClick={() => fileRef.current?.click()}
+            disabled={loading || uploading}
+          >
+            {uploading ? <Loader2 className="h-4 w-4 animate-spin" /> : <Paperclip className="h-4 w-4" />}
+            Upload CV (PDF/DOCX)
+          </Button>
+          <p className="text-xs text-muted-foreground">We'll read the text out of your file.</p>
+        </div>
       </div>
 
       {result && (

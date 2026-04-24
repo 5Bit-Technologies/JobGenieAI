@@ -15,6 +15,7 @@ import { Route as FindJobsRouteImport } from './routes/find-jobs'
 import { Route as DashboardRouteImport } from './routes/dashboard'
 import { Route as CvCheckRouteImport } from './routes/cv-check'
 import { Route as CvBuilderRouteImport } from './routes/cv-builder'
+import { Route as ChatRouteImport } from './routes/chat'
 import { Route as CareerQuizRouteImport } from './routes/career-quiz'
 import { Route as IndexRouteImport } from './routes/index'
 
@@ -48,6 +49,11 @@ const CvBuilderRoute = CvBuilderRouteImport.update({
   path: '/cv-builder',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ChatRoute = ChatRouteImport.update({
+  id: '/chat',
+  path: '/chat',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const CareerQuizRoute = CareerQuizRouteImport.update({
   id: '/career-quiz',
   path: '/career-quiz',
@@ -62,6 +68,7 @@ const IndexRoute = IndexRouteImport.update({
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/career-quiz': typeof CareerQuizRoute
+  '/chat': typeof ChatRoute
   '/cv-builder': typeof CvBuilderRoute
   '/cv-check': typeof CvCheckRoute
   '/dashboard': typeof DashboardRoute
@@ -72,6 +79,7 @@ export interface FileRoutesByFullPath {
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/career-quiz': typeof CareerQuizRoute
+  '/chat': typeof ChatRoute
   '/cv-builder': typeof CvBuilderRoute
   '/cv-check': typeof CvCheckRoute
   '/dashboard': typeof DashboardRoute
@@ -83,6 +91,7 @@ export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/career-quiz': typeof CareerQuizRoute
+  '/chat': typeof ChatRoute
   '/cv-builder': typeof CvBuilderRoute
   '/cv-check': typeof CvCheckRoute
   '/dashboard': typeof DashboardRoute
@@ -95,6 +104,7 @@ export interface FileRouteTypes {
   fullPaths:
     | '/'
     | '/career-quiz'
+    | '/chat'
     | '/cv-builder'
     | '/cv-check'
     | '/dashboard'
@@ -105,6 +115,7 @@ export interface FileRouteTypes {
   to:
     | '/'
     | '/career-quiz'
+    | '/chat'
     | '/cv-builder'
     | '/cv-check'
     | '/dashboard'
@@ -115,6 +126,7 @@ export interface FileRouteTypes {
     | '__root__'
     | '/'
     | '/career-quiz'
+    | '/chat'
     | '/cv-builder'
     | '/cv-check'
     | '/dashboard'
@@ -126,6 +138,7 @@ export interface FileRouteTypes {
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   CareerQuizRoute: typeof CareerQuizRoute
+  ChatRoute: typeof ChatRoute
   CvBuilderRoute: typeof CvBuilderRoute
   CvCheckRoute: typeof CvCheckRoute
   DashboardRoute: typeof DashboardRoute
@@ -178,6 +191,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof CvBuilderRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/chat': {
+      id: '/chat'
+      path: '/chat'
+      fullPath: '/chat'
+      preLoaderRoute: typeof ChatRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/career-quiz': {
       id: '/career-quiz'
       path: '/career-quiz'
@@ -198,6 +218,7 @@ declare module '@tanstack/react-router' {
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   CareerQuizRoute: CareerQuizRoute,
+  ChatRoute: ChatRoute,
   CvBuilderRoute: CvBuilderRoute,
   CvCheckRoute: CvCheckRoute,
   DashboardRoute: DashboardRoute,
@@ -208,12 +229,3 @@ const rootRouteChildren: RootRouteChildren = {
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
-
-import type { getRouter } from './router.tsx'
-import type { createStart } from '@tanstack/react-start'
-declare module '@tanstack/react-start' {
-  interface Register {
-    ssr: true
-    router: Awaited<ReturnType<typeof getRouter>>
-  }
-}

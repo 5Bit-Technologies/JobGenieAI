@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 
 const NAV = [
   { to: "/dashboard", label: "Dashboard" },
+  { to: "/chat", label: "Chat" },
   { to: "/cv-builder", label: "CV Builder" },
   { to: "/find-jobs", label: "Find Jobs" },
   { to: "/interview-coach", label: "Interview" },
@@ -96,6 +97,7 @@ export function SiteFooter() {
         <div>
           <h4 className="font-display text-sm font-bold uppercase tracking-wider text-accent">Tools</h4>
           <ul className="mt-3 space-y-2 text-sm text-primary-foreground/80">
+            <li><Link to="/chat" className="hover:text-accent">Chat</Link></li>
             <li><Link to="/cv-builder" className="hover:text-accent">CV Builder</Link></li>
             <li><Link to="/find-jobs" className="hover:text-accent">Find Jobs</Link></li>
             <li><Link to="/interview-coach" className="hover:text-accent">Interview Coach</Link></li>
