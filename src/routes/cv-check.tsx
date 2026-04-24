@@ -426,7 +426,10 @@ ${fixesBlock}`,
             {updatedCV && (
               <div className="mt-5 rounded-2xl border border-border bg-background p-4 sm:p-5">
                 <div className="mb-3 flex flex-wrap items-center justify-between gap-2">
-                  <p className="text-xs font-bold uppercase tracking-wider text-primary">Your updated CV</p>
+                  <div>
+                    <p className="text-xs font-bold uppercase tracking-wider text-primary">Your updated CV — edit freely</p>
+                    <p className="text-[11px] text-muted-foreground">Tweak anything below before copying or downloading.</p>
+                  </div>
                   <div className="flex gap-2">
                     <Button variant="outline" size="sm" onClick={copyUpdated}>
                       <Copy className="h-4 w-4" /> Copy
@@ -436,7 +439,11 @@ ${fixesBlock}`,
                     </Button>
                   </div>
                 </div>
-                <pre className="max-h-[600px] overflow-auto whitespace-pre-wrap font-sans text-sm leading-relaxed">{updatedCV}</pre>
+                <Textarea
+                  value={updatedCV}
+                  onChange={(e) => setUpdatedCV(e.target.value)}
+                  className="min-h-[600px] rounded-xl font-sans text-sm leading-relaxed"
+                />
               </div>
             )}
           </div>
