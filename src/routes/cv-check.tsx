@@ -173,17 +173,150 @@ ${fixesBlock}`,
     );
   }
 
-  function downloadUpdated() {
+  async function downloadUpdated() {
     if (!updatedCV) return;
-    const blob = new Blob([updatedCV], { type: "text/plain;charset=utf-8" });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement("a");
-    a.href = url;
-    a.download = "updated-cv.txt";
-    document.body.appendChild(a);
-    a.click();
-    document.body.removeChild(a);
-    URL.revokeObjectURL(url);
+    try {
+      const { jsPDF } = await import("jspdf");
+      const doc = new jsPDF({ unit: "mm", format: "a4", orientation: "portrait" });
+
+      const pageW = doc.internal.pageSize.getWidth();
+      const pageH = doc.internal.pageSize.getHeight();
+      const margin = 15;
+      const contentW = pageW - margin * 2;
+      let y = margin;
+
+      const GREEN: [number, number, number] = [27, 67, 50];
+      const GOLD: [number, number, number] = [212, 160, 23];
+      const TEXT: [number, number, number] = [38, 38, 38];
+      const MUTED: [number, number, number] = [110, 110, 110];
+
+      const ensureSpace = (needed: number) => {
+        if (y + needed > pageH - margin) {
+          doc.addPage();
+          y = margin;
+        }
+      };
+
+      const writeWrapped = (
+        text: string,
+        opts: { size?: number; style?: "normal" | "bold" | "italic"; color?: [number, number, number]; lineGap?: number; indent?: number } = {},
+      ) => {
+        const { size = 10, style = "normal", color = TEXT, lineGap = 1.2, indent = 0 } = opts;
+        doc.setFont("helvetica", style);
+        doc.setFontSize(size);
+        doc.setTextColor(color[0], color[1], color[2]);
+        const lines = doc.splitTextToSize(text, contentW - indent);
+        for (const line of lines) {
+          ensureSpace(size * 0.4 + lineGap);
+          doc.text(line, margin + indent, y);
+          y += size * 0.4 + lineGap;
+        }
+      };
+
+      const sectionHeading = (title: string) => {
+        ensureSpace(10);
+        y += 3;
+        doc.setFont("helvetica", "bold");
+        doc.setFontSize(10);
+        doc.setTextColor(GOLD[0], GOLD[1], GOLD[2]);
+        doc.text(title.toUpperCase(), margin, y);
+        y += 1.5;
+        doc.setDrawColor(GOLD[0], GOLD[1], GOLD[2]);
+        doc.setLineWidth(0.3);
+        doc.line(margin, y, margin + contentW, y);
+        y += 4;
+      };
+
+      // Parse the plain-text CV into a header + sections.
+      // We treat ALL-CAPS lines (and common section names) as section headings.
+      const rawLines = updatedCV.replace(/\r\n/g, "\n").split("\n");
+      const isHeading = (line: string) => {
+        const t = line.trim();
+        if (!t || t.length > 60) return false;
+        if (t.endsWith(":")) return /^[A-Z0-9 &/\-()]+:$/.test(t);
+        // ALL CAPS heading (allow spaces, &, /, -, digits)
+        return /^[A-Z][A-Z0-9 &/\-()]{1,}$/.test(t) && /[A-Z]/.test(t);
+      };
+
+      // Split into blocks
+      type Block = { heading: string | null; lines: string[] };
+      const blocks: Block[] = [];
+      let current: Block = { heading: null, lines: [] };
+      for (const raw of rawLines) {
+        const line = raw.replace(/\s+$/g, "");
+        if (isHeading(line)) {
+          if (current.heading !== null || current.lines.length > 0) blocks.push(current);
+          current = { heading: line.replace(/:$/, "").trim(), lines: [] };
+        } else {
+          current.lines.push(line);
+        }
+      }
+      blocks.push(current);
+
+      // Header block (no heading) — first non-empty line is the name
+      const headerBlock = blocks.shift();
+      const headerLines = (headerBlock?.lines ?? []).map((l) => l.trim()).filter(Boolean);
+      const name = headerLines[0] || "Your Name";
+      const headerRest = headerLines.slice(1);
+
+      // Name
+      doc.setFont("helvetica", "bold");
+      doc.setFontSize(24);
+      doc.setTextColor(GREEN[0], GREEN[1], GREEN[2]);
+      doc.text(name, margin, y + 8);
+      y += 12;
+
+      // Contact / sub-header lines (compact, muted)
+      for (const line of headerRest) {
+        doc.setFont("helvetica", "normal");
+        doc.setFontSize(9);
+        doc.setTextColor(MUTED[0], MUTED[1], MUTED[2]);
+        const wrapped = doc.splitTextToSize(line, contentW);
+        for (const w of wrapped) {
+          ensureSpace(4);
+          doc.text(w, margin, y);
+          y += 4;
+        }
+      }
+
+      // Header divider
+      doc.setDrawColor(GREEN[0], GREEN[1], GREEN[2]);
+      doc.setLineWidth(0.8);
+      doc.line(margin, y, margin + contentW, y);
+      y += 4;
+
+      // Body blocks
+      for (const block of blocks) {
+        if (!block.heading && block.lines.every((l) => !l.trim())) continue;
+        if (block.heading) sectionHeading(block.heading);
+
+        // Render lines, treating bullet markers nicely
+        for (const raw of block.lines) {
+          const line = raw.replace(/\s+$/g, "");
+          if (!line.trim()) {
+            y += 1.5;
+            continue;
+          }
+          const bullet = /^\s*([-•*])\s+(.*)$/.exec(line);
+          if (bullet) {
+            ensureSpace(5);
+            doc.setFont("helvetica", "normal");
+            doc.setFontSize(10);
+            doc.setTextColor(GREEN[0], GREEN[1], GREEN[2]);
+            doc.text("•", margin, y);
+            writeWrapped(bullet[2], { size: 10, indent: 4 });
+          } else {
+            writeWrapped(line, { size: 10 });
+          }
+        }
+      }
+
+      const safeName = (name || "JobGenie").replace(/\s+/g, "-");
+      doc.save(`${safeName}-Updated-CV.pdf`);
+    } catch (e) {
+      console.error("PDF export failed:", e);
+      toast.error("Couldn't download PDF. Please try again.");
+    }
   }
 
   return (
