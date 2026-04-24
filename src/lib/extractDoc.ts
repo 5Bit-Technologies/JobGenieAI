@@ -16,11 +16,11 @@ function clip(text: string): { text: string; truncated: boolean } {
 }
 
 async function extractPdf(file: File): Promise<string> {
-  // Use the legacy build for broad browser compat + a hosted worker URL.
   const pdfjs = await import("pdfjs-dist");
-  // @ts-expect-error - worker URL import
-  const worker = (await import("pdfjs-dist/build/pdf.worker.min.mjs?url")).default;
-  pdfjs.GlobalWorkerOptions.workerSrc = worker;
+  const workerMod = (await import(
+    /* @vite-ignore */ "pdfjs-dist/build/pdf.worker.min.mjs?url"
+  )) as { default: string };
+  pdfjs.GlobalWorkerOptions.workerSrc = workerMod.default;
 
   const buf = await file.arrayBuffer();
   const pdf = await pdfjs.getDocument({ data: buf }).promise;
@@ -42,11 +42,12 @@ async function extractPdf(file: File): Promise<string> {
 }
 
 async function extractDocx(file: File): Promise<string> {
-  const mammoth = await import("mammoth/mammoth.browser");
+  const mammoth = (await import("mammoth")) as unknown as {
+    extractRawText: (input: { arrayBuffer: ArrayBuffer }) => Promise<{ value: string }>;
+  };
   const buf = await file.arrayBuffer();
-  // @ts-expect-error - browser build types
   const { value } = await mammoth.extractRawText({ arrayBuffer: buf });
-  return (value as string).trim();
+  return value.trim();
 }
 
 async function extractText(file: File): Promise<string> {
