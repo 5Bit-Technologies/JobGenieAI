@@ -196,9 +196,14 @@ function Dashboard() {
           <p className="font-display text-lg font-bold">Want to redo your setup?</p>
           <p className="text-sm text-muted-foreground">Update your province, industry, or experience.</p>
         </div>
-        <Button asChild variant="outline">
-          <Link to="/onboard">Edit profile</Link>
-        </Button>
+        <div className="flex flex-wrap gap-2">
+          <Button asChild variant="outline">
+            <Link to="/onboard">Edit profile</Link>
+          </Button>
+          <Button variant="destructive" onClick={clearAllData}>
+            <Trash2 className="h-4 w-4" /> Clear all data
+          </Button>
+        </div>
       </div>
     </div>
   );
