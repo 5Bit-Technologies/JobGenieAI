@@ -14,6 +14,8 @@ import { useProfile } from "@/lib/profile";
 import { ALL_TOOLS, getProgress, type ToolKey } from "@/lib/progress";
 import { callText } from "@/lib/ai";
 import { Button } from "@/components/ui/button";
+import { Trash2 } from "lucide-react";
+import { toast } from "sonner";
 
 export const Route = createFileRoute("/dashboard")({
   head: () => ({
@@ -35,11 +37,25 @@ const TOOLS: { key: ToolKey; to: string; icon: typeof FileText; title: string; d
 ];
 
 function Dashboard() {
-  const { profile } = useProfile();
+  const { profile, reset } = useProfile();
   const navigate = useNavigate();
   const [progress, setProgress] = useState<ToolKey[]>([]);
   const [quote, setQuote] = useState<string>("");
   const [quoteLoading, setQuoteLoading] = useState(true);
+
+  function clearAllData() {
+    if (!confirm("This will delete your profile, CV, chat history, progress and all saved data on this device. Continue?")) return;
+    try {
+      Object.keys(localStorage)
+        .filter((k) => k.startsWith("jobgenie:"))
+        .forEach((k) => localStorage.removeItem(k));
+      reset();
+      toast.success("All your data has been cleared.");
+      setTimeout(() => navigate({ to: "/onboard" }), 600);
+    } catch {
+      toast.error("Couldn't clear data.");
+    }
+  }
 
   useEffect(() => {
     if (!profile.completedOnboarding) {
@@ -180,9 +196,14 @@ function Dashboard() {
           <p className="font-display text-lg font-bold">Want to redo your setup?</p>
           <p className="text-sm text-muted-foreground">Update your province, industry, or experience.</p>
         </div>
-        <Button asChild variant="outline">
-          <Link to="/onboard">Edit profile</Link>
-        </Button>
+        <div className="flex flex-wrap gap-2">
+          <Button asChild variant="outline">
+            <Link to="/onboard">Edit profile</Link>
+          </Button>
+          <Button variant="destructive" onClick={clearAllData}>
+            <Trash2 className="h-4 w-4" /> Clear all data
+          </Button>
+        </div>
       </div>
     </div>
   );
