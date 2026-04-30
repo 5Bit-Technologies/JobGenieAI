@@ -37,11 +37,25 @@ const TOOLS: { key: ToolKey; to: string; icon: typeof FileText; title: string; d
 ];
 
 function Dashboard() {
-  const { profile } = useProfile();
+  const { profile, reset } = useProfile();
   const navigate = useNavigate();
   const [progress, setProgress] = useState<ToolKey[]>([]);
   const [quote, setQuote] = useState<string>("");
   const [quoteLoading, setQuoteLoading] = useState(true);
+
+  function clearAllData() {
+    if (!confirm("This will delete your profile, CV, chat history, progress and all saved data on this device. Continue?")) return;
+    try {
+      Object.keys(localStorage)
+        .filter((k) => k.startsWith("jobgenie:"))
+        .forEach((k) => localStorage.removeItem(k));
+      reset();
+      toast.success("All your data has been cleared.");
+      setTimeout(() => navigate({ to: "/onboard" }), 600);
+    } catch {
+      toast.error("Couldn't clear data.");
+    }
+  }
 
   useEffect(() => {
     if (!profile.completedOnboarding) {
